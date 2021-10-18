@@ -90,9 +90,13 @@ started, you will need to set up an Azure account and populate it with some requ
 over to the [Azure environment setup guide](./docs/azure-environment-setup.md) to find out how to do
 this.
 
-The next stage will be to build the demo application and deploy it to your device.
+**Note**: *The Azure Samples team is working on a fully-automated environment set-up. If you are not
+comfortable following the manual steps documented in the link above, check back here soon for
+some additional content!*
 
-**TODO: Link to demo app source code and instructions for build**
+The next stage will be to build the demo application and deploy it to your device. It's time to head
+over to the [GitHub repository](https://github.com/Scalys/oeml) for the OpenEnclave Machine Learning
+demo in order to complete your exploration of this Azure Sample project.
 
 # Where To Learn More
 

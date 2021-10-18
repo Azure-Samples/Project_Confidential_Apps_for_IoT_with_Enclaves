@@ -70,6 +70,22 @@ required: **ProvisionKey**, **WrapKey** and **DistributeKey**. The sample contai
 each of these functions, complete with a `run.csx` file, which contains the function implementation,
 and a `function.proj` file, which contains information about the function and its dependencies.
 
+The **ProvisionKey** and **WrapKey** functions are both web contracts that can be called as RESTful
+APIs by clients on demand. Therefore, when creating these functions, you should configure them to be
+[HTTP trigger](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook-trigger?tabs=csharp)
+functions.
+
+The **DistributeKey** function is somewhat different. It is not called explicitly. It runs as a
+background housekeeping task, synchronizing encryption keys with all of the edge devices in your
+deployment. There are different ways of triggering this function so that it runs at suitable times.
+However, the simplest and easiest is probably just to run it on a regular basis, such as once every
+hour. You can set it up as a 
+[timer trigger](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=csharp)
+to achieve this with very little effort. With a little more work, it would be possible to use event
+triggers to ensure that the function is called as needed on a more precise basis, such as when any
+new key is added to the vault, or whenever a new edge device registers or publishes a new public key.
+Such enhancements are left as an exercise for the reader.
+
 ## Giving Your Function App The Correct Permissions
 
 The Azure functions that run within the function app are responsible for provisioning, fetching and
@@ -111,6 +127,66 @@ You need to add the following *two* new configuration settings to the function a
    parameters or authentication values are needed, because the function app already has its own
    managed service identity (see above), and you will already have granted it with the required
    permissions to call into the key vault.
+
+## Provisioning An Encryption Key
+
+Once you have created your Key Vault and Function App, and populated the code for the functions,
+you can try calling the **ProvisionKey** function to create a symmetric encryption key within the
+vault. This is an example of a *class key*, which can be used to encrypt your confidential
+applications.
+
+All encryption keys need a name or identity. This is simply a string that allows the tools to
+locate and use the correct key for any given application. In this sample, we will use the identity
+`1f574668-6c89-41b5-b313-4b2d85d63c9d`, which corresponds to the UID of the OpenEnclave Machine
+Learning demo. Make sure that you use exactly this string, rather than generating your own UID. It
+needs to match the demo application that you will be using. If you wish to provision your own keys
+for other workloads, then you will need to use your own suitable key identity.
+
+You can call the **ProvisionKey** function in a variety of ways. You can call it from within the
+Azure Portal and supply the following JSON data as the request body:
+
+```
+{
+   "key_name": "1f574668-6c89-41b5-b313-4b2d85d63c9d"
+}
+```
+
+But because this is simply an HTTP web hook, you can call it using any suitable HTTP client on any
+machine, such as [Postman](https://www.postman.com) or [curl](https://linux.die.net/man/1/curl).
+To do this, you will need a suitable HTTP endpoint to call your function. The simplest way to do
+this is with a function access key. Use the "Get Function URL" feature of the Azure Portal, or
+use [the CLI](https://docs.microsoft.com/en-us/cli/azure/functionapp/function/keys?view=azure-cli-latest)
+to obtain a function key for **ProvisionKey**. Here is an example of calling the **ProvisionKey**
+function using curl:
+
+```
+curl --header "Content-Type: application/json" \​
+    --request POST \​
+    --data '{"key_name": "1f574668-6c89-41b5-b313-4b2d85d63c9d"}’ \
+    https://<FUNCTION_APP>.azurewebsites.net/api/ProvisionKey?code=<ACCESS_CODE>​
+```
+
+(where `<FUNCTION_APP>` and `<ACCESS_CODE>` are the correct host and function key for your
+environment).
+
+If the function succeeds, you should see that your Key Vault now has a new secret whose name is
+`1f574668-6c89-41b5-b313-4b2d85d63c9d`. This is the class encryption key that will be used in the
+demo.
+
+If the function fails, it indicates a problem with your environment set-up. Double check that you
+have correctly followed the procedures above. Check in particular that your Function App has the
+required access to the Key Vault, and that the **KeyVaultEndpoint** setting is correct in your
+app settings.
+
+## Configuring The Key For Distribution
+
+In order to configure the **DistributeKey** function to distribute the new encryption key to your
+registered edge devices, you will need to add one final configuration setting to the Function App.
+Using the same procedure as you used above to configure the **HubConnectionString** and
+**KeyVaultEndpoint** settings, create an additional setting called **KeyVaultSecretNames** and
+set its value to `1f574668-6c89-41b5-b313-4b2d85d63c9d`. (If you want to distribute multiple keys,
+then you should use a comma-separated list of values here. But for the demo, you will only need to
+distribute this single key).
 
 ## Creating Your Container Registry
 
