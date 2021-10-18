@@ -101,7 +101,10 @@ demo in order to complete your exploration of this Azure Sample project.
 # Where To Learn More
 
 - **Read the Whitepaper** : (https://aka.ms/edb-whitepaper)
-- **Read the Blogs** : (https://aka.ms/edb-blogs)
+- **Read the Blogs** :
+    - **From Microsoft** : (https://aka.ms/edb-blogs-msft)
+    - **From Scalys** : (https://aka.ms/edb-scalys)
+    - **From Arm** : (https://aka.ms/edb-blogs-arm)
 - **Get the Scalys TrustBox Edge 201** : (https://aka.ms/edb-tb201)
 - **Try the demo now** : (https://aka.ms/edb-demo)
 - **Device and solution** : (https://aka.ms/edb-components)
