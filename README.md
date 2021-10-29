@@ -105,7 +105,7 @@ demo in order to complete your exploration of this Azure Sample project.
     - **From Microsoft** : (https://aka.ms/edb-blogs-msft)
     - **From Scalys** : (https://aka.ms/edb-scalys)
     - **From Arm** : (https://aka.ms/edb-blogs-arm)
-- **Get the Scalys TrustBox Edge 201** : (https://aka.ms/edb-tb201)
+- **Get the Scalys TrustBox Edge 201** : (https://aka.ms/edb-tbe201)
 - **Try the demo now** : (https://aka.ms/edb-demo)
 - **Device and solution** : (https://aka.ms/edb-components)
 - **Resources and Communities**: (https://aka.ms/edb-resources)
