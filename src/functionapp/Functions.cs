@@ -72,9 +72,9 @@ public class Functions
     {
         this.logger.LogInformation($"DistrubuteKey Timer trigger function executed at: {DateTime.Now}");
 
-        var secrets = this.secretClient.GetPropertiesOfSecrets();
+        List<SecretProperties> secrets = this.secretClient.GetPropertiesOfSecrets().ToList();
 
-        Dictionary<string, string> map = secrets.ToList().Select(
+        Dictionary<string, string> map = secrets.Select(
             s => this.secretClient.GetSecretAsync(s.Name).Result.Value).ToDictionary(k => k.Name, v => v.Value);
 
         this.logger.LogInformation($"Obtained {map.Count} key(s) for distribution.");
