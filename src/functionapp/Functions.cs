@@ -19,14 +19,12 @@ public class Functions
     private readonly ILogger logger;
     private readonly SecretClient secretClient;
     private readonly RegistryManager registryManager;
-    private readonly List<string> secrets;
 
-    public Functions(ILoggerFactory loggerFactory, SecretClient secretClient, RegistryManager registryManager, List<string> secrets)
+    public Functions(ILoggerFactory loggerFactory, SecretClient secretClient, RegistryManager registryManager)
     {
         this.logger = loggerFactory.CreateLogger<Functions>();
         this.secretClient = secretClient;
         this.registryManager = registryManager;
-        this.secrets = secrets;
     }
 
     [Function("ProvisionKey")]
@@ -74,8 +72,10 @@ public class Functions
     {
         this.logger.LogInformation($"DistrubuteKey Timer trigger function executed at: {DateTime.Now}");
 
-        Dictionary<string, string> map = this.secrets.Select(
-            s => this.secretClient.GetSecretAsync(s).Result.Value).ToDictionary(k => k.Name, v => v.Value);
+        var secrets = this.secretClient.GetPropertiesOfSecrets();
+
+        Dictionary<string, string> map = secrets.ToList().Select(
+            s => this.secretClient.GetSecretAsync(s.Name).Result.Value).ToDictionary(k => k.Name, v => v.Value);
 
         this.logger.LogInformation($"Obtained {map.Count} key(s) for distribution.");
 

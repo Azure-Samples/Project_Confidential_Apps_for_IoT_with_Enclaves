@@ -35,10 +35,6 @@ namespace functionapp
                     string iotHub = Environment.GetEnvironmentVariable("HubConnectionString");
                     if(string.IsNullOrEmpty(iotHub)) throw new ArgumentNullException("Failed to get HubConnectionString setting from the environment. Please check configuration.");
                     services.AddSingleton<RegistryManager>(o => RegistryManager.CreateFromConnectionString(iotHub));
-
-                    string secrets = Environment.GetEnvironmentVariable("KeyVaultSecretNames");
-                    if(string.IsNullOrEmpty(iotHub)) throw new ArgumentNullException("Failed to get KeyVaultSecretNames setting from the environment. Please check configuration.");
-                    services.AddTransient<List<string>>(o => secrets.Split(',').ToList());
                 })
                 .Build();
 
