@@ -1,10 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
 
 namespace functionapp.Models;
 public class Key
@@ -22,13 +20,10 @@ public class Key
 
     public RSACryptoServiceProvider GetRSACryptoServiceProvider()
     {
-        AsymmetricKeyParameter asymmetricKeyParameter = PublicKeyFactory.CreateKey(this.ClientPublicKey);
+        X509Certificate2 cert = new X509Certificate2(this.ClientPublicKey);
+        RSAParameters parameters = cert.GetRSAPublicKey().ExportParameters(false);
         RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-        rsa.ImportParameters(new RSAParameters
-        {
-            Modulus = ((RsaKeyParameters)asymmetricKeyParameter).Modulus.ToByteArrayUnsigned(),
-            Exponent = ((RsaKeyParameters)asymmetricKeyParameter).Exponent.ToByteArrayUnsigned()
-        });
+        rsa.ImportParameters(parameters);
         return rsa;
     }
 }

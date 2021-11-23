@@ -6,7 +6,7 @@ using functionapp.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 using System;
-using Org.BouncyCastle.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace functionapp;
 
@@ -50,11 +50,13 @@ public static class Helpers
             try
             {
                 _ = Convert.FromBase64String(key.ClientPublicKeyBase64Encoded);
-                _ = PublicKeyFactory.CreateKey(key.ClientPublicKey);
+                X509Certificate2 cert = new X509Certificate2(key.ClientPublicKey);
+                _ = cert.GetRSAPublicKey().ExportParameters(false);
             }
-            catch
+            catch(Exception exception)
             {
-                validationResults.Add(new ValidationResult("ClientPublicKey needs to be a valid base64 encoded string of a SubjectPublicKeyInfo", new[] { "client_public_key" }));
+                Console.WriteLine(exception);
+                validationResults.Add(new ValidationResult("ClientPublicKey needs to be a valid base64 encoded string of a RSA public key", new[] { "client_public_key" }));
             }
 
         }

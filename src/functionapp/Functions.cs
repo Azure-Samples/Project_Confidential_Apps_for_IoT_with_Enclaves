@@ -9,8 +9,8 @@ using functionapp.Models;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.Devices;
-using System.Linq;
 using Microsoft.Azure.Devices.Shared;
+using System.Linq;
 
 namespace functionapp;
 
