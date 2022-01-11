@@ -105,7 +105,7 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
 
 var secretOfficer = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')
 resource funcRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  name: guid('funcRoleAssignment')
+  name: guid('funcRoleAssignment${suffix}')
   properties: {
     principalId: func.identity.principalId
     roleDefinitionId: secretOfficer
