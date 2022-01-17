@@ -104,8 +104,7 @@
               "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'KeyVaultEndpoint')).secretUri)]"
             }
           ],
-          "use32BitWorkerProcess": false,
-          "linuxFxVersion": "DOTNET|6.0"
+          "use32BitWorkerProcess": false
         }
       },
       "identity": {
