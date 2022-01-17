@@ -129,7 +129,7 @@
       "apiVersion": "2021-02-01",
       "name": "[format('{0}/{1}', format('func{0}', variables('suffix')), 'web')]",
       "properties": {
-        "repoUrl": "https://github.com/Azure-Samples/Project_Confidential_Apps_for_IoT_with_Enclaves.git",
+        "repoUrl": "https://github.com/${{ github.repository }}.git",
         "branch": "master",
         "isManualIntegration": true
       },
