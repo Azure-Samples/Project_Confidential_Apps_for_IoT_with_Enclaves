@@ -1,0 +1,193 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.4.1008.15138",
+      "templateHash": "6427009025708275470"
+    }
+  },
+  "functions": [],
+  "variables": {
+    "suffix": "[uniqueString(resourceGroup().id)]",
+    "secretOfficer": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('vault{0}', variables('suffix'))]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "standard"
+        },
+        "enableRbacAuthorization": true,
+        "enabledForTemplateDeployment": true,
+        "tenantId": "[subscription().tenantId]",
+        "accessPolicies": []
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02-preview",
+      "name": "insights",
+      "location": "[resourceGroup().location]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-06-01",
+      "name": "[format('storage{0}', variables('suffix'))]",
+      "location": "[resourceGroup().location]",
+      "kind": "Storage",
+      "sku": {
+        "name": "Standard_LRS"
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2021-02-01",
+      "name": "farm",
+      "location": "[resourceGroup().location]",
+      "kind": "elastic",
+      "sku": {
+        "name": "EP1",
+        "tier": "ElasticPremium",
+        "capacity": 1
+      },
+      "properties": {
+        "elasticScaleEnabled": true,
+        "reserved": true,
+        "maximumElasticWorkerCount": 10
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-12-01",
+      "name": "[format('func{0}', variables('suffix'))]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp,linux",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'farm')]",
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix=core.windows.net', format('storage{0}', variables('suffix')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('storage{0}', variables('suffix'))), '2021-06-01').keys[0].value)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix=core.windows.net', format('storage{0}', variables('suffix')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('storage{0}', variables('suffix'))), '2021-06-01').keys[0].value)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(format('func{0}', variables('suffix')))]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', 'insights')).InstrumentationKey]"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "dotnet"
+            },
+            {
+              "name": "HubConnectionString",
+              "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'HubConnectionString')).secretUri)]"
+            },
+            {
+              "name": "KeyVaultEndpoint",
+              "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'KeyVaultEndpoint')).secretUri)]"
+            }
+          ],
+          "use32BitWorkerProcess": false,
+          "linuxFxVersion": "DOTNET|6.0"
+        }
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'KeyVaultEndpoint')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', format('storage{0}', variables('suffix')))]",
+        "[resourceId('Microsoft.Web/serverfarms', 'farm')]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'HubConnectionString')]",
+        "[resourceId('Microsoft.Insights/components', 'insights')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-04-01-preview",
+      "scope": "[format('Microsoft.KeyVault/vaults/{0}', format('vault{0}', variables('suffix')))]",
+      "name": "[guid(format('funcRoleAssignment{0}', variables('suffix')))]",
+      "properties": {
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('func{0}', variables('suffix'))), '2020-12-01', 'full').identity.principalId]",
+        "roleDefinitionId": "[variables('secretOfficer')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]",
+        "[resourceId('Microsoft.Web/sites', format('func{0}', variables('suffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Devices/IotHubs",
+      "apiVersion": "2021-07-01",
+      "name": "[format('iot{0}', variables('suffix'))]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "S1",
+        "capacity": 1
+      },
+      "properties": {
+        "eventHubEndpoints": {
+          "events": {
+            "partitionCount": 2,
+            "retentionTimeInDays": 1
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', format('vault{0}', variables('suffix')), 'HubConnectionString')]",
+      "properties": {
+        "value": "[format('Endpoint={0};SharedAccessKeyName=iothubowner;SharedAccessKey={1};EntityPath={2}', reference(resourceId('Microsoft.Devices/IotHubs', format('iot{0}', variables('suffix')))).eventHubEndpoints.events.endpoint, listKeys(resourceId('Microsoft.Devices/IotHubs', format('iot{0}', variables('suffix'))), '2021-07-01').value[0].primaryKey, format('iot{0}', variables('suffix')))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]",
+        "[resourceId('Microsoft.Devices/IotHubs', format('iot{0}', variables('suffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', format('vault{0}', variables('suffix')), 'KeyVaultEndpoint')]",
+      "properties": {
+        "value": "[reference(resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))).vaultUri]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('acr{0}', variables('suffix'))]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard"
+      }
+    }
+  ]
+}
