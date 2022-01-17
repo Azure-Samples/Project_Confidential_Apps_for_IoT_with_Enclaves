@@ -45,6 +45,9 @@ resource farm 'Microsoft.Web/serverfarms@2021-02-01' = {
     tier: 'Standard'
     capacity: 0
   }
+  properties: {
+    reserved: true
+  }
 }
 
 var connectionString = 'DefaultEndpointsProtocol=https;AccountName=${blob.name};AccountKey=${listKeys(blob.id, blob.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
