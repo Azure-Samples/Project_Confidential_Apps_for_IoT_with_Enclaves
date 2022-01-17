@@ -59,7 +59,7 @@
         "tier": "Standard"
       },
       "properties": {
-        "reserved": true
+        "reserved": false
       }
     },
     {

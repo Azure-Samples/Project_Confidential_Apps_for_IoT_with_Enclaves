@@ -44,7 +44,7 @@ resource farm 'Microsoft.Web/serverfarms@2021-02-01' = {
     tier: 'Standard'
   }
   properties: {
-    reserved: true
+    reserved: false
   }
 }
 
