@@ -39,10 +39,10 @@ resource farm 'Microsoft.Web/serverfarms@2021-02-01' = {
   name: 'farm'
   location: resourceGroup().location
 
-  kind: 'elastic'
+  kind: 'linux'
   sku: {
-    name: 'Y1'
-    tier: 'Dynamic'
+    name: 'S1'
+    tier: 'Standard'
     capacity: 0
   }
 }
@@ -90,6 +90,7 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
         }
       ]
       use32BitWorkerProcess: false
+      linuxFxVersion: 'DOTNET|6.0'
     }
   }
   identity: {

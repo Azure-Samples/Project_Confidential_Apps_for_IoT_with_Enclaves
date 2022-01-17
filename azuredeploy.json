@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "18141669806060701538"
+      "templateHash": "1190933580724347193"
     }
   },
   "variables": {
@@ -57,7 +57,8 @@
       "kind": "linux",
       "sku": {
         "name": "S1",
-        "tier": "Standard"
+        "tier": "Standard",
+        "capacity": 0
       }
     },
     {
@@ -103,7 +104,8 @@
               "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'KeyVaultEndpoint')).secretUri)]"
             }
           ],
-          "use32BitWorkerProcess": false
+          "use32BitWorkerProcess": false,
+          "linuxFxVersion": "DOTNET|6.0"
         }
       },
       "identity": {
