@@ -90,7 +90,6 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
         }
       ]
       use32BitWorkerProcess: false
-      linuxFxVersion: 'DOTNET|6.0'
     }
   }
   identity: {
@@ -103,7 +102,7 @@ resource app 'Microsoft.Web/sites/sourcecontrols@2021-02-01' = {
   parent: func
 
   properties: {
-    repoUrl: 'https://github.com/Azure-Samples/Project_Confidential_Apps_for_IoT_with_Enclaves.git'
+    repoUrl: 'https://github.com/JimPaine/Project_Confidential_Apps_for_IoT_with_Enclaves.git'
     branch: 'master'
     isManualIntegration: true
   }
