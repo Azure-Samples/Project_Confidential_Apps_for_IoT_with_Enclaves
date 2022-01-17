@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "9099486890059744576"
+      "templateHash": "17926530950722788653"
     }
   },
   "variables": {
@@ -56,14 +56,9 @@
       "location": "[resourceGroup().location]",
       "kind": "elastic",
       "sku": {
-        "name": "EP1",
-        "tier": "ElasticPremium",
-        "capacity": 1
-      },
-      "properties": {
-        "elasticScaleEnabled": true,
-        "reserved": true,
-        "maximumElasticWorkerCount": 10
+        "name": "Y1",
+        "tier": "Dynamic",
+        "capacity": 0
       }
     },
     {

@@ -41,14 +41,9 @@ resource farm 'Microsoft.Web/serverfarms@2021-02-01' = {
 
   kind: 'elastic'
   sku: {
-    name: 'EP1'
-    tier: 'ElasticPremium'
-    capacity: 1
-  }
-  properties: {
-    elasticScaleEnabled: true
-    reserved: true
-    maximumElasticWorkerCount: 10
+    name: 'Y1'
+    tier: 'Dynamic'
+    capacity: 0
   }
 }
 
