@@ -103,6 +103,17 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
   }
 }
 
+resource app 'Microsoft.Web/sites/sourcecontrols@2021-02-01' = {
+  name: 'web'
+  parent: func
+
+  properties: {
+    repoUrl: 'https://github.com/Azure-Samples/Project_Confidential_Apps_for_IoT_with_Enclaves.git'
+    branch: 'master'
+    isManualIntegration: true
+  }
+}
+
 var secretOfficer = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')
 resource funcRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   name: guid('funcRoleAssignment${suffix}')

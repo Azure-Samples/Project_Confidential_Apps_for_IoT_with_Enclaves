@@ -4,11 +4,10 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.4.1008.15138",
-      "templateHash": "6427009025708275470"
+      "version": "0.4.1124.51302",
+      "templateHash": "9099486890059744576"
     }
   },
-  "functions": [],
   "variables": {
     "suffix": "[uniqueString(resourceGroup().id)]",
     "secretOfficer": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')]"
@@ -123,6 +122,19 @@
         "[resourceId('Microsoft.Web/serverfarms', 'farm')]",
         "[resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'HubConnectionString')]",
         "[resourceId('Microsoft.Insights/components', 'insights')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/sourcecontrols",
+      "apiVersion": "2021-02-01",
+      "name": "[format('{0}/{1}', format('func{0}', variables('suffix')), 'web')]",
+      "properties": {
+        "repoUrl": "https://github.com/Azure-Samples/Project_Confidential_Apps_for_IoT_with_Enclaves.git",
+        "branch": "master",
+        "isManualIntegration": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('func{0}', variables('suffix')))]"
       ]
     },
     {
