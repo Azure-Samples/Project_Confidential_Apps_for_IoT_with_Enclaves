@@ -103,7 +103,7 @@ resource app 'Microsoft.Web/sites/sourcecontrols@2021-02-01' = {
 
   properties: {
     repoUrl: 'https://github.com/JimPaine/Project_Confidential_Apps_for_IoT_with_Enclaves.git'
-    branch: 'master'
+    branch: 'main'
     isManualIntegration: true
   }
 }

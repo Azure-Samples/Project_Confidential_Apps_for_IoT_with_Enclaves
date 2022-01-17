@@ -56,9 +56,8 @@
       "location": "[resourceGroup().location]",
       "kind": "linux",
       "sku": {
-        "name": "Y1",
-        "tier": "Dynamic",
-        "capacity": 0
+        "name": "S1",
+        "tier": "Standard"
       }
     },
     {
@@ -124,7 +123,7 @@
       "name": "[format('{0}/{1}', format('func{0}', variables('suffix')), 'web')]",
       "properties": {
         "repoUrl": "https://github.com/JimPaine/Project_Confidential_Apps_for_IoT_with_Enclaves.git",
-        "branch": "master",
+        "branch": "main",
         "isManualIntegration": true
       },
       "dependsOn": [
