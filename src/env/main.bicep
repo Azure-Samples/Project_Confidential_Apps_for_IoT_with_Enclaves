@@ -124,7 +124,7 @@ var secretOfficer = subscriptionResourceId('Microsoft.Authorization/roleDefiniti
 resource funcRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   name: guid('funcRoleAssignment${suffix}')
   properties: {
-    principalId: funIdentity.properties.principalId
+    principalId: func.identity.principalId
     roleDefinitionId: secretOfficer
   }
   scope: akv
