@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "5781493825213505579"
+      "templateHash": "2303728101223045296"
     }
   },
   "variables": {
@@ -63,9 +63,6 @@
       "sku": {
         "name": "S1",
         "tier": "Standard"
-      },
-      "properties": {
-        "reserved": true
       }
     },
     {
@@ -73,7 +70,7 @@
       "apiVersion": "2020-12-01",
       "name": "[format('func{0}', variables('suffix'))]",
       "location": "[resourceGroup().location]",
-      "kind": "functionapp,linux",
+      "kind": "functionapp",
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'farm')]",
         "siteConfig": {
@@ -111,8 +108,7 @@
               "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'KeyVaultEndpoint')).secretUri)]"
             }
           ],
-          "use32BitWorkerProcess": false,
-          "linuxFxVersion": "DOTNET|6.0"
+          "use32BitWorkerProcess": false
         },
         "keyVaultReferenceIdentity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))]"
       },

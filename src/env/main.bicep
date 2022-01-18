@@ -48,16 +48,13 @@ resource farm 'Microsoft.Web/serverfarms@2021-02-01' = {
     name: 'S1'
     tier: 'Standard'
   }
-  properties: {
-    reserved: true
-  }
 }
 
 var connectionString = 'DefaultEndpointsProtocol=https;AccountName=${blob.name};AccountKey=${listKeys(blob.id, blob.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
 resource func 'Microsoft.Web/sites@2020-12-01' = {
   name: 'func${suffix}'
   location: resourceGroup().location
-  kind: 'functionapp,linux'
+  kind: 'functionapp'
   properties: {
     serverFarmId: farm.id
     siteConfig: {
@@ -96,7 +93,6 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
         }
       ]
       use32BitWorkerProcess: false
-      linuxFxVersion: 'DOTNET|6.0'
     }
     keyVaultReferenceIdentity: funIdentity.id
   }
