@@ -98,7 +98,7 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
       use32BitWorkerProcess: false
       linuxFxVersion: 'DOTNET|6.0'
     }
-    keyVaultReferenceIdentity: akv.id
+    keyVaultReferenceIdentity: funIdentity.id
   }
   identity: {
     type: 'UserAssigned'

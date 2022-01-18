@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "13262505246641337608"
+      "templateHash": "5781493825213505579"
     }
   },
   "variables": {
@@ -114,7 +114,7 @@
           "use32BitWorkerProcess": false,
           "linuxFxVersion": "DOTNET|6.0"
         },
-        "keyVaultReferenceIdentity": "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]"
+        "keyVaultReferenceIdentity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))]"
       },
       "identity": {
         "type": "UserAssigned",
@@ -123,7 +123,6 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]",
         "[resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'KeyVaultEndpoint')]",
         "[resourceId('Microsoft.Storage/storageAccounts', format('storage{0}', variables('suffix')))]",
         "[resourceId('Microsoft.Web/serverfarms', 'farm')]",
