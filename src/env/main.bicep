@@ -48,6 +48,9 @@ resource farm 'Microsoft.Web/serverfarms@2021-02-01' = {
     name: 'S1'
     tier: 'Standard'
   }
+  properties: {
+    reserved: true
+  }
 }
 
 var connectionString = 'DefaultEndpointsProtocol=https;AccountName=${blob.name};AccountKey=${listKeys(blob.id, blob.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
@@ -93,6 +96,8 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
         }
       ]
       use32BitWorkerProcess: false
+      linuxFxVersion: 'DOTNET|6.0'
+      alwaysOn: true
     }
     keyVaultReferenceIdentity: funIdentity.id
   }
