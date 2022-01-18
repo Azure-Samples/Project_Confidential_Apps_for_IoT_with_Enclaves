@@ -35,6 +35,11 @@ resource blob 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   }
 }
 
+resource funIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+  name: 'func-id-${suffix}'
+  location: resourceGroup().location
+}
+
 resource farm 'Microsoft.Web/serverfarms@2021-02-01' = {
   name: 'farm'
   location: resourceGroup().location
@@ -43,13 +48,16 @@ resource farm 'Microsoft.Web/serverfarms@2021-02-01' = {
     name: 'S1'
     tier: 'Standard'
   }
+  properties: {
+    reserved: true
+  }
 }
 
 var connectionString = 'DefaultEndpointsProtocol=https;AccountName=${blob.name};AccountKey=${listKeys(blob.id, blob.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
 resource func 'Microsoft.Web/sites@2020-12-01' = {
   name: 'func${suffix}'
   location: resourceGroup().location
-  kind: 'functionapp'
+  kind: 'functionapp,linux'
   properties: {
     serverFarmId: farm.id
     siteConfig: {
@@ -88,10 +96,15 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
         }
       ]
       use32BitWorkerProcess: false
+      linuxFxVersion: 'DOTNET|6.0'
     }
+    keyVaultReferenceIdentity: akv.id
   }
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${funIdentity.id}': {}
+    }
   }
 }
 
@@ -110,7 +123,7 @@ var secretOfficer = subscriptionResourceId('Microsoft.Authorization/roleDefiniti
 resource funcRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   name: guid('funcRoleAssignment${suffix}')
   properties: {
-    principalId: func.identity.principalId
+    principalId: funIdentity.properties.principalId
     roleDefinitionId: secretOfficer
   }
   scope: akv

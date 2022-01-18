@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "9135020722789242176"
+      "templateHash": "13262505246641337608"
     }
   },
   "variables": {
@@ -50,6 +50,12 @@
       }
     },
     {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2018-11-30",
+      "name": "[format('func-id-{0}', variables('suffix'))]",
+      "location": "[resourceGroup().location]"
+    },
+    {
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2021-02-01",
       "name": "farm",
@@ -57,6 +63,9 @@
       "sku": {
         "name": "S1",
         "tier": "Standard"
+      },
+      "properties": {
+        "reserved": true
       }
     },
     {
@@ -64,7 +73,7 @@
       "apiVersion": "2020-12-01",
       "name": "[format('func{0}', variables('suffix'))]",
       "location": "[resourceGroup().location]",
-      "kind": "functionapp",
+      "kind": "functionapp,linux",
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'farm')]",
         "siteConfig": {
@@ -102,16 +111,23 @@
               "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'KeyVaultEndpoint')).secretUri)]"
             }
           ],
-          "use32BitWorkerProcess": false
-        }
+          "use32BitWorkerProcess": false,
+          "linuxFxVersion": "DOTNET|6.0"
+        },
+        "keyVaultReferenceIdentity": "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]"
       },
       "identity": {
-        "type": "SystemAssigned"
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix'))))]": {}
+        }
       },
       "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]",
         "[resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'KeyVaultEndpoint')]",
         "[resourceId('Microsoft.Storage/storageAccounts', format('storage{0}', variables('suffix')))]",
         "[resourceId('Microsoft.Web/serverfarms', 'farm')]",
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))]",
         "[resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'HubConnectionString')]",
         "[resourceId('Microsoft.Insights/components', 'insights')]"
       ]
@@ -135,12 +151,12 @@
       "scope": "[format('Microsoft.KeyVault/vaults/{0}', format('vault{0}', variables('suffix')))]",
       "name": "[guid(format('funcRoleAssignment{0}', variables('suffix')))]",
       "properties": {
-        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('func{0}', variables('suffix'))), '2020-12-01', 'full').identity.principalId]",
+        "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))).principalId]",
         "roleDefinitionId": "[variables('secretOfficer')]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]",
-        "[resourceId('Microsoft.Web/sites', format('func{0}', variables('suffix')))]"
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))]"
       ]
     },
     {
