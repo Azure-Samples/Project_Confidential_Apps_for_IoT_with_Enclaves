@@ -67,43 +67,43 @@ public class Functions
 
     }
 
-    [Function("DistrubuteKey")]
-    public async Task Run([TimerTrigger("0 */5 * * * *")] MyInfo info)
-    {
-        this.logger.LogInformation($"DistrubuteKey Timer trigger function executed at: {DateTime.Now}");
+    // [Function("DistrubuteKey")]
+    // public async Task Run([TimerTrigger("0 */5 * * * *")] MyInfo info)
+    // {
+    //     this.logger.LogInformation($"DistrubuteKey Timer trigger function executed at: {DateTime.Now}");
 
-        List<SecretProperties> secrets = this.secretClient.GetPropertiesOfSecrets().ToList();
+    //     List<SecretProperties> secrets = this.secretClient.GetPropertiesOfSecrets().ToList();
 
-        Dictionary<string, string> map = secrets.Select(
-            s => this.secretClient.GetSecretAsync(s.Name).Result.Value).ToDictionary(k => k.Name, v => v.Value);
+    //     Dictionary<string, string> map = secrets.Select(
+    //         s => this.secretClient.GetSecretAsync(s.Name).Result.Value).ToDictionary(k => k.Name, v => v.Value);
 
-        this.logger.LogInformation($"Obtained {map.Count} key(s) for distribution.");
+    //     this.logger.LogInformation($"Obtained {map.Count} key(s) for distribution.");
 
-        IQuery query = this.registryManager.CreateQuery("SELECT * FROM devices WHERE is_defined(properties.reported.device_public_key)", 100);
+    //     IQuery query = this.registryManager.CreateQuery("SELECT * FROM devices WHERE is_defined(properties.reported.device_public_key)", 100);
 
-        while (query.HasMoreResults)
-        {
-            IEnumerable<Twin> page = await query.GetNextAsTwinAsync();
-            foreach (Twin twin in page)
-            {
-                this.logger.LogInformation($"Distributing key(s) to twin of device '{twin.DeviceId}'.");
+    //     while (query.HasMoreResults)
+    //     {
+    //         IEnumerable<Twin> page = await query.GetNextAsTwinAsync();
+    //         foreach (Twin twin in page)
+    //         {
+    //             this.logger.LogInformation($"Distributing key(s) to twin of device '{twin.DeviceId}'.");
 
-                Key key = new Key
-                {
-                    KeyName = twin.DeviceId,
-                    ClientPublicKeyBase64Encoded = twin.Properties.Reported["device_public_key"].ToString()
-                };
+    //             Key key = new Key
+    //             {
+    //                 KeyName = twin.DeviceId,
+    //                 ClientPublicKeyBase64Encoded = twin.Properties.Reported["device_public_key"].ToString()
+    //             };
 
-                using (var rsa = key.GetRSACryptoServiceProvider())
-                {
-                    twin.Properties.Desired["confidential_package_keys"] = map.ToDictionary(
-                        k => k.Key,
-                        v => Convert.ToBase64String(rsa.Encrypt(Convert.FromBase64String(v.Value), false)));
-                }
-                _ = await registryManager.UpdateTwinAsync(twin.DeviceId, twin, twin.ETag);
-            }
-        }
+    //             using (var rsa = key.GetRSACryptoServiceProvider())
+    //             {
+    //                 twin.Properties.Desired["confidential_package_keys"] = map.ToDictionary(
+    //                     k => k.Key,
+    //                     v => Convert.ToBase64String(rsa.Encrypt(Convert.FromBase64String(v.Value), false)));
+    //             }
+    //             _ = await registryManager.UpdateTwinAsync(twin.DeviceId, twin, twin.ETag);
+    //         }
+    //     }
 
-        this.logger.LogInformation("Successful execution of the DistributeKey timer hook.");
-    }
+    //     this.logger.LogInformation("Successful execution of the DistributeKey timer hook.");
+    // }
 }

@@ -10,7 +10,6 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureAppConfiguration((ctx, config) =>
     {
-        config.AddJsonFile("appsettings.json", optional: true);
         config.AddJsonFile("local.settings.json", optional: true);
         config.AddEnvironmentVariables();
     })
