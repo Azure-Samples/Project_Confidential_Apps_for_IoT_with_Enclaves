@@ -1,23 +1,12 @@
-using System.Text.Json;
 using functionapp.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography.X509Certificates;
-using Microsoft.AspNetCore.Http;
 using System.Security.Cryptography;
 
 namespace functionapp;
 
 public static class Helpers
 {
-    public async static Task<Key?> GetKey(this HttpRequest request, string keyName = "", string client_public_key = "")
-    {
-        if (request?.Body == null) return null;
-
-        return request.Method == "POST" ?
-            await JsonSerializer.DeserializeAsync<Key>(request.Body) :
-            new Key { KeyName = keyName, ClientPublicKeyBase64Encoded = client_public_key };
-    }
-
     public static bool IsValid(this Key? key, out List<ValidationResult> validationResults, bool needsPublicKey = false)
     {
         Key k = key ?? new Key();

@@ -38,19 +38,3 @@ public record Response
     [JsonPropertyName("wrapped_key")]
     public string? WrappedKey { get; set; }
 }
-
-public record MyInfo
-{
-    public MyScheduleStatus? ScheduleStatus { get; set; }
-
-    public bool IsPastDue { get; set; }
-}
-
-public record MyScheduleStatus
-{
-    public DateTime Last { get; set; }
-
-    public DateTime Next { get; set; }
-
-    public DateTime LastUpdated { get; set; }
-}

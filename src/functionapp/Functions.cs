@@ -9,6 +9,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json;
 
 namespace functionapp;
 
@@ -27,11 +28,11 @@ public class Functions
 
     [FunctionName("ProvisionKey")]
     public async Task<IActionResult> ProvisionKey(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest request, string key_name)
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest request)
     {
         this.logger.LogInformation("ProvisionKey function processed a request.");
 
-        Key? key = await request.GetKey(key_name);
+        Key? key = request != null ? await JsonSerializer.DeserializeAsync<Key>(request.Body) : null;
 
         if (!key.IsValid(out List<ValidationResult> errors)) return new BadRequestObjectResult(errors);
 
@@ -47,11 +48,11 @@ public class Functions
     }
 
     [FunctionName("WrapKey")]
-    public async Task<IActionResult> WrapKey([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest request, string key_name, string? client_public_key = null)
+    public async Task<IActionResult> WrapKey([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest request)
     {
         this.logger.LogInformation("WrapKey function processed a request.");
 
-        Key? key = await request.GetKey(key_name, client_public_key ?? "");
+        Key? key = request != null ? await JsonSerializer.DeserializeAsync<Key>(request.Body) : null;
 
         if (!key.IsValid(out List<ValidationResult> errors, true)) return new BadRequestObjectResult(errors);
 
@@ -66,7 +67,7 @@ public class Functions
     }
 
     [FunctionName("DistrubuteKey")]
-    public async Task Run([TimerTrigger("0 */5 * * * *")] MyInfo info)
+    public async Task Run([TimerTrigger("0 */5 * * * *")] TimerInfo info)
     {
         this.logger.LogInformation($"DistrubuteKey Timer trigger function executed at: {DateTime.Now}");
 
