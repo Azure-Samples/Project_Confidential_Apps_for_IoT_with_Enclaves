@@ -14,10 +14,13 @@ public class Startup : FunctionsStartup
         string? akvUri = Environment.GetEnvironmentVariable("KeyVaultEndpoint");
         if (string.IsNullOrEmpty(akvUri)) throw new ArgumentNullException("Failed to get KeyVaultEndpoint setting from the environment. Please check configuration.");
 
+        string? managedIdentityClientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
         builder.Services.AddSingleton<SecretClient>(
             o => new SecretClient(
                 vaultUri: new Uri(akvUri),
-                credential: new DefaultAzureCredential()));
+                credential: managedIdentityClientId != null ?
+                    new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = managedIdentityClientId }) :
+                    new DefaultAzureCredential()));
 
         string? iotHub = Environment.GetEnvironmentVariable("HubConnectionString");
         if (string.IsNullOrEmpty(iotHub)) throw new ArgumentNullException("Failed to get HubConnectionString setting from the environment. Please check configuration.");

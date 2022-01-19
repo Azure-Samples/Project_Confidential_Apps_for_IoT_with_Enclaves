@@ -91,6 +91,10 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
           name: 'KeyVaultEndpoint'
           value: '@Microsoft.KeyVault(SecretUri=${akvUrlSecret.properties.secretUri})'
         }
+        {
+          name: 'AZURE_CLIENT_ID'
+          value: funIdentity.properties.clientId
+        }
       ]
       use32BitWorkerProcess: false
       alwaysOn: true

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "14024962829237821360"
+      "templateHash": "477901112634478466"
     }
   },
   "variables": {
@@ -106,6 +106,10 @@
             {
               "name": "KeyVaultEndpoint",
               "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('vault{0}', variables('suffix')), 'KeyVaultEndpoint')).secretUri)]"
+            },
+            {
+              "name": "AZURE_CLIENT_ID",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))).clientId]"
             }
           ],
           "use32BitWorkerProcess": false,
