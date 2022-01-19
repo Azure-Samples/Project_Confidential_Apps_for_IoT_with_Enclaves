@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "8956720853869802386"
+      "templateHash": "1071006859468006386"
     }
   },
   "variables": {
@@ -63,9 +63,6 @@
       "sku": {
         "name": "S1",
         "tier": "Standard"
-      },
-      "properties": {
-        "reserved": true
       }
     },
     {
@@ -112,7 +109,6 @@
             }
           ],
           "use32BitWorkerProcess": false,
-          "linuxFxVersion": "DOTNET|6.0",
           "alwaysOn": true
         },
         "keyVaultReferenceIdentity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))]"
@@ -149,14 +145,15 @@
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2020-04-01-preview",
       "scope": "[format('Microsoft.KeyVault/vaults/{0}', format('vault{0}', variables('suffix')))]",
-      "name": "[guid(format('funcRoleAssignment{0}', variables('suffix')))]",
+      "name": "[guid(format('funcRoleAssignment{0}', variables('suffix')), resourceId('Microsoft.Web/sites', format('func{0}', variables('suffix'))))]",
       "properties": {
-        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('func{0}', variables('suffix'))), '2020-12-01', 'full').identity.principalId]",
+        "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))).principalId]",
         "roleDefinitionId": "[variables('secretOfficer')]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]",
-        "[resourceId('Microsoft.Web/sites', format('func{0}', variables('suffix')))]"
+        "[resourceId('Microsoft.Web/sites', format('func{0}', variables('suffix')))]",
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))]"
       ]
     },
     {
