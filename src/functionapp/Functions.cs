@@ -28,13 +28,13 @@ public class Functions
 
     [FunctionName("ProvisionKey")]
     public async Task<IActionResult> ProvisionKey(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest request)
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "{key_name}")] HttpRequest request, string key_name)
     {
         this.logger.LogInformation("ProvisionKey function processed a request.");
 
-        Key? key = request != null ? await JsonSerializer.DeserializeAsync<Key>(request.Body) : null;
+        Key? key = await request.GetKey(key_name);
 
-        if (!key.IsValid(out List<ValidationResult> errors)) return new BadRequestObjectResult(errors);
+        if (!key.IsValid(out List<ValidationResult> errors, false)) return new BadRequestObjectResult(errors);
 
         using (Aes myAes = Aes.Create())
         {
