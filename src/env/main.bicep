@@ -149,7 +149,7 @@ resource hubConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2021-06-01
   parent: akv
 
   properties: {
-    value: 'Endpoint=${iotHub.properties.eventHubEndpoints.events.endpoint};SharedAccessKeyName=iothubowner;SharedAccessKey=${sharedAccessKey};EntityPath=${iotHub.name}'
+    value: 'HostName=${iotHub.properties.hostName};SharedAccessKeyName=iothubowner;SharedAccessKey=${sharedAccessKey}'
   }
 }
 

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "1071006859468006386"
+      "templateHash": "14024962829237821360"
     }
   },
   "variables": {
@@ -179,7 +179,7 @@
       "apiVersion": "2021-06-01-preview",
       "name": "[format('{0}/{1}', format('vault{0}', variables('suffix')), 'HubConnectionString')]",
       "properties": {
-        "value": "[format('Endpoint={0};SharedAccessKeyName=iothubowner;SharedAccessKey={1};EntityPath={2}', reference(resourceId('Microsoft.Devices/IotHubs', format('iot{0}', variables('suffix')))).eventHubEndpoints.events.endpoint, listKeys(resourceId('Microsoft.Devices/IotHubs', format('iot{0}', variables('suffix'))), '2021-07-01').value[0].primaryKey, format('iot{0}', variables('suffix')))]"
+        "value": "[format('HostName={0};SharedAccessKeyName=iothubowner;SharedAccessKey={1}', reference(resourceId('Microsoft.Devices/IotHubs', format('iot{0}', variables('suffix')))).hostName, listKeys(resourceId('Microsoft.Devices/IotHubs', format('iot{0}', variables('suffix'))), '2021-07-01').value[0].primaryKey)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]",
