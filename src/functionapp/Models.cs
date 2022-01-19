@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -10,41 +9,44 @@ public class Key
     [JsonPropertyName("key_name")]
     [Required]
     [StringLength(20, MinimumLength = 5)]
-    public string KeyName { get; set; }
+    public string? KeyName { get; set; }
 
     [JsonPropertyName("client_public_key")]
-    public string ClientPublicKeyBase64Encoded { get; set; }
+    public string? ClientPublicKeyBase64Encoded { get; set; }
 
     [JsonIgnore]
-    public byte[] ClientPublicKey => !string.IsNullOrWhiteSpace(this.ClientPublicKeyBase64Encoded) ? Convert.FromBase64String(this.ClientPublicKeyBase64Encoded) : default;
+    public byte[]? ClientPublicKey => !string.IsNullOrWhiteSpace(this.ClientPublicKeyBase64Encoded) ? Convert.FromBase64String(this.ClientPublicKeyBase64Encoded) : default;
 
-    public RSACryptoServiceProvider GetRSACryptoServiceProvider()
+    public RSACryptoServiceProvider? GetRSACryptoServiceProvider()
     {
-        X509Certificate2 cert = new X509Certificate2(this.ClientPublicKey);
-        RSAParameters parameters = cert.GetRSAPublicKey().ExportParameters(false);
-        RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-        rsa.ImportParameters(parameters);
-        return rsa;
+        if (this.ClientPublicKey == null) return null;
+        X509Certificate2? cert = new X509Certificate2(this.ClientPublicKey);
+        RSA? rsa = cert?.GetRSAPublicKey();
+        if (rsa == null) return null;
+        RSAParameters parameters = rsa.ExportParameters(false);
+        RSACryptoServiceProvider provider = new RSACryptoServiceProvider();
+        provider.ImportParameters(parameters);
+        return provider;
     }
 }
 
-public class Response
+public record Response
 {
     [JsonPropertyName("message")]
-    public string Message { get; set; }
+    public string? Message { get; set; }
 
     [JsonPropertyName("wrapped_key")]
-    public string WrappedKey { get; set; }
+    public string? WrappedKey { get; set; }
 }
 
-public class MyInfo
+public record MyInfo
 {
-    public MyScheduleStatus ScheduleStatus { get; set; }
+    public MyScheduleStatus? ScheduleStatus { get; set; }
 
     public bool IsPastDue { get; set; }
 }
 
-public class MyScheduleStatus
+public record MyScheduleStatus
 {
     public DateTime Last { get; set; }
 

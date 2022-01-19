@@ -1,16 +1,14 @@
-using System.Threading.Tasks;
 using System.Security.Cryptography;
 using Azure.Security.KeyVault.Secrets;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using System;
 using functionapp.Models;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Shared;
-using System.Linq;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace functionapp;
 
@@ -27,47 +25,47 @@ public class Functions
         this.registryManager = registryManager;
     }
 
-    [Function("ProvisionKey")]
-    public async Task<HttpResponseData> ProvisionKey([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData request, string key_name)
+    [FunctionName("ProvisionKey")]
+    public async Task<IActionResult> ProvisionKey(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest request, string key_name)
     {
         this.logger.LogInformation("ProvisionKey function processed a request.");
 
-        Key key = await request.GetKey(key_name);
+        Key? key = await request.GetKey(key_name);
 
-        if (!key.IsValid(out List<ValidationResult> errors)) return await request.BadRequestObjectResult(errors);
+        if (!key.IsValid(out List<ValidationResult> errors)) return new BadRequestObjectResult(errors);
 
         using (Aes myAes = Aes.Create())
         {
             myAes.KeySize = 256;
             myAes.GenerateKey();
             byte[] rawKey = myAes.Key;
-            await this.secretClient.SetSecretAsync(key.KeyName, Convert.ToBase64String(rawKey));
+            await this.secretClient.SetSecretAsync(key?.KeyName, Convert.ToBase64String(rawKey));
         }
 
-        return await request.OkObjectResult<Response>(new Response { Message = $"Successfully provisioned the key {key.KeyName} in {secretClient.VaultUri}." });
+        return new OkObjectResult(new Response { Message = $"Successfully provisioned the key {key!.KeyName} in {secretClient.VaultUri}." });
     }
 
-    [Function("WrapKey")]
-    public async Task<HttpResponseData> WrapKey([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData request, string key_name, string client_public_key = null)
+    [FunctionName("WrapKey")]
+    public async Task<IActionResult> WrapKey([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest request, string key_name, string? client_public_key = null)
     {
         this.logger.LogInformation("WrapKey function processed a request.");
 
-        Key key = await request.GetKey(key_name, client_public_key);
+        Key? key = await request.GetKey(key_name, client_public_key ?? "");
 
-        if (!key.IsValid(out List<ValidationResult> errors, true)) return await request.BadRequestObjectResult(errors);
+        if (!key.IsValid(out List<ValidationResult> errors, true)) return new BadRequestObjectResult(errors);
 
-        KeyVaultSecret secret = await this.secretClient.GetSecretAsync(key.KeyName);
-        using (var rsa = key.GetRSACryptoServiceProvider())
+        KeyVaultSecret secret = await this.secretClient.GetSecretAsync(key?.KeyName);
+        using (var rsa = key!.GetRSACryptoServiceProvider())
         {
-            byte[] wrappedKey = rsa.Encrypt(Convert.FromBase64String(secret.Value), false);
+            byte[] wrappedKey = rsa!.Encrypt(Convert.FromBase64String(secret.Value), false);
 
-            return await request.OkObjectResult<Response>(
-                new Response { WrappedKey = Convert.ToBase64String(wrappedKey) });
+            return new OkObjectResult(new Response { WrappedKey = Convert.ToBase64String(wrappedKey) });
         }
 
     }
 
-    [Function("DistrubuteKey")]
+    [FunctionName("DistrubuteKey")]
     public async Task Run([TimerTrigger("0 */5 * * * *")] MyInfo info)
     {
         this.logger.LogInformation($"DistrubuteKey Timer trigger function executed at: {DateTime.Now}");
@@ -94,11 +92,16 @@ public class Functions
                     ClientPublicKeyBase64Encoded = twin.Properties.Reported["device_public_key"].ToString()
                 };
 
+                if (!key.IsValid(out List<ValidationResult> errors, true)) {
+                    this.logger.LogError($"Failed to distribute key(s) to twin of device '{twin.DeviceId}'. {errors.First().ErrorMessage}");
+                    continue;
+                }
+
                 using (var rsa = key.GetRSACryptoServiceProvider())
                 {
                     twin.Properties.Desired["confidential_package_keys"] = map.ToDictionary(
                         k => k.Key,
-                        v => Convert.ToBase64String(rsa.Encrypt(Convert.FromBase64String(v.Value), false)));
+                        v => Convert.ToBase64String(rsa!.Encrypt(Convert.FromBase64String(v.Value), false)));
                 }
                 _ = await registryManager.UpdateTwinAsync(twin.DeviceId, twin, twin.ETag);
             }
