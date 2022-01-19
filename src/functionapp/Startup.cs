@@ -1,9 +1,6 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Azure.Security.KeyVault.Secrets;
-using System;
 using Azure.Identity;
 using Microsoft.Azure.Devices;
 
