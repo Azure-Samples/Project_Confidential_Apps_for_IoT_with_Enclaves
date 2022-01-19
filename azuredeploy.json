@@ -5,11 +5,11 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "477901112634478466"
+      "templateHash": "14616198989917717911"
     }
   },
   "variables": {
-    "suffix": "[uniqueString(resourceGroup().id)]",
+    "suffix": "[uniqueString(subscription().id, resourceGroup().id)]",
     "secretOfficer": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')]"
   },
   "resources": [

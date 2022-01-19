@@ -1,6 +1,6 @@
 targetScope = 'resourceGroup'
 
-var suffix = uniqueString(resourceGroup().id)
+var suffix = uniqueString(subscription().id, resourceGroup().id)
 
 resource akv 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
   name: 'vault${suffix}'
