@@ -28,7 +28,7 @@ public class Functions
 
     [FunctionName("ProvisionKey")]
     public async Task<IActionResult> ProvisionKey(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "{key_name}")] HttpRequest request, string key_name)
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "ProvisionKey/{key_name}")] HttpRequest request, string key_name)
     {
         this.logger.LogInformation("ProvisionKey function processed a request.");
 
