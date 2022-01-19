@@ -9,7 +9,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using System.Text.Json;
 
 namespace functionapp;
 
@@ -41,7 +40,7 @@ public class Functions
             myAes.KeySize = 256;
             myAes.GenerateKey();
             byte[] rawKey = myAes.Key;
-            await this.secretClient.SetSecretAsync(key?.KeyName, Convert.ToBase64String(rawKey));
+            await this.secretClient.SetSecretAsync(key!.KeyName, Convert.ToBase64String(rawKey));
         }
 
         return new OkObjectResult(new Response { Message = $"Successfully provisioned the key {key!.KeyName} in {secretClient.VaultUri}." });
@@ -52,11 +51,11 @@ public class Functions
     {
         this.logger.LogInformation("WrapKey function processed a request.");
 
-        Key? key = request != null ? await JsonSerializer.DeserializeAsync<Key>(request.Body) : null;
+        Key? key = await request.GetKey();
 
         if (!key.IsValid(out List<ValidationResult> errors, true)) return new BadRequestObjectResult(errors);
 
-        KeyVaultSecret secret = await this.secretClient.GetSecretAsync(key?.KeyName);
+        KeyVaultSecret secret = await this.secretClient.GetSecretAsync(key!.KeyName);
         using (var rsa = key!.GetRSACryptoServiceProvider())
         {
             byte[] wrappedKey = rsa!.Encrypt(Convert.FromBase64String(secret.Value), false);
