@@ -5,7 +5,16 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "14616198989917717911"
+      "templateHash": "10441574237314832113"
+    }
+  },
+  "parameters": {
+    "keyvault_use_rbac": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Use the recommended approach for managing rbac around AKV. You will need to set this to false if you do not have the appropriate permissions to manage roles in a subscription."
+      }
     }
   },
   "variables": {
@@ -23,7 +32,7 @@
           "family": "A",
           "name": "standard"
         },
-        "enableRbacAuthorization": true,
+        "enableRbacAuthorization": "[parameters('keyvault_use_rbac')]",
         "enabledForTemplateDeployment": true,
         "tenantId": "[subscription().tenantId]",
         "accessPolicies": []
@@ -146,6 +155,7 @@
       ]
     },
     {
+      "condition": "[parameters('keyvault_use_rbac')]",
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2020-04-01-preview",
       "scope": "[format('Microsoft.KeyVault/vaults/{0}', format('vault{0}', variables('suffix')))]",
@@ -157,6 +167,31 @@
       "dependsOn": [
         "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]",
         "[resourceId('Microsoft.Web/sites', format('func{0}', variables('suffix')))]",
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))]"
+      ]
+    },
+    {
+      "condition": "[not(parameters('keyvault_use_rbac'))]",
+      "type": "Microsoft.KeyVault/vaults/accessPolicies",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', format('vault{0}', variables('suffix')), 'add')]",
+      "properties": {
+        "accessPolicies": [
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))).principalId]",
+            "permissions": {
+              "secrets": [
+                "get",
+                "list",
+                "set"
+              ]
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', format('vault{0}', variables('suffix')))]",
         "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('func-id-{0}', variables('suffix')))]"
       ]
     },
