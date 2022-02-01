@@ -2,8 +2,8 @@ targetScope = 'resourceGroup'
 
 var suffix = uniqueString(subscription().id, resourceGroup().id)
 
-param dpsKey string = 'mykey'
-param deviceIds array
+@description('Use the recommended approach for managing rbac around AKV. You will need to set this to false if you do not have the appropriate permissions to manage roles in a subscription.')
+param keyvault_use_rbac bool = true
 
 resource akv 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
   name: 'vault${suffix}'
@@ -13,7 +13,7 @@ resource akv 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
       family: 'A'
       name: 'standard'
     }
-    enableRbacAuthorization: true
+    enableRbacAuthorization: keyvault_use_rbac
     enabledForTemplateDeployment: true
     tenantId: subscription().tenantId
     accessPolicies: []
@@ -134,13 +134,33 @@ resource app 'Microsoft.Web/sites/sourcecontrols@2021-02-01' = {
 // This is so we can user key vault reference for application settings (mentioned above) and
 // So in code we can use managed identity to create and retrieve secrets from key vault.
 var secretOfficer = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')
-resource funcRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+resource funcRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = if (keyvault_use_rbac) {
   name: guid('funcRoleAssignment${suffix}', func.id)
   properties: {
     principalId: funIdentity.properties.principalId
     roleDefinitionId: secretOfficer
   }
   scope: akv
+}
+
+resource accessPolicy 'Microsoft.KeyVault/vaults/accessPolicies@2021-06-01-preview' = if (!keyvault_use_rbac) {
+  parent: akv
+  name: 'add'
+  properties: {
+    accessPolicies: [
+      {
+        tenantId: subscription().tenantId
+        objectId: funIdentity.properties.principalId
+        permissions: {
+          secrets: [
+            'get'
+            'list'
+            'set'
+          ]
+        }
+      }
+    ]
+  }
 }
 
 resource iotHub 'Microsoft.Devices/IotHubs@2021-07-01' = {
@@ -158,18 +178,6 @@ resource iotHub 'Microsoft.Devices/IotHubs@2021-07-01' = {
       }
     }
   }
-}
-
-resource dps 'Microsoft.Devices/provisioningServices@2021-10-15' = {
-  name: 'dps${suffix}'
-  location: resourceGroup().location
-  sku: {
-    name: 'S1'
-  }
-  properties: {
-
-  }
-
 }
 
 // Create secrets for consumed resources and put their keys / connections strings into key vault
