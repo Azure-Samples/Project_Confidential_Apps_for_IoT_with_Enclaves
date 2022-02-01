@@ -5,7 +5,16 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1124.51302",
-      "templateHash": "14616198989917717911"
+      "templateHash": "4914699661480330994"
+    }
+  },
+  "parameters": {
+    "dpsKey": {
+      "type": "string",
+      "defaultValue": "mykey"
+    },
+    "deviceIds": {
+      "type": "array"
     }
   },
   "variables": {
@@ -177,6 +186,16 @@
           }
         }
       }
+    },
+    {
+      "type": "Microsoft.Devices/provisioningServices",
+      "apiVersion": "2021-10-15",
+      "name": "[format('dps{0}', variables('suffix'))]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "S1"
+      },
+      "properties": {}
     },
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
