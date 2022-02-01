@@ -2,6 +2,9 @@ targetScope = 'resourceGroup'
 
 var suffix = uniqueString(subscription().id, resourceGroup().id)
 
+param dpsKey string = 'mykey'
+param deviceIds array
+
 resource akv 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
   name: 'vault${suffix}'
   location: resourceGroup().location
@@ -85,6 +88,11 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
         }
         {
           name: 'HubConnectionString'
+          // Using Azure Key Vault references so we can use the managed identity to pull
+          // secrets from key vault and inject them into our app environment without needing
+          // a code dependency on the key vault or AAD.
+          //
+          // https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references
           value: '@Microsoft.KeyVault(SecretUri=${hubConnectionStringSecret.properties.secretUri})'
         }
         {
@@ -109,6 +117,8 @@ resource func 'Microsoft.Web/sites@2020-12-01' = {
   }
 }
 
+// add source control settings so that we can use kudu to handle the application
+// compilation and deployment.
 resource app 'Microsoft.Web/sites/sourcecontrols@2021-02-01' = {
   name: 'web'
   parent: func
@@ -120,6 +130,9 @@ resource app 'Microsoft.Web/sites/sourcecontrols@2021-02-01' = {
   }
 }
 
+// create role assignment that allows our function app to manage secrets in the key vault.
+// This is so we can user key vault reference for application settings (mentioned above) and
+// So in code we can use managed identity to create and retrieve secrets from key vault.
 var secretOfficer = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')
 resource funcRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   name: guid('funcRoleAssignment${suffix}', func.id)
@@ -147,6 +160,20 @@ resource iotHub 'Microsoft.Devices/IotHubs@2021-07-01' = {
   }
 }
 
+resource dps 'Microsoft.Devices/provisioningServices@2021-10-15' = {
+  name: 'dps${suffix}'
+  location: resourceGroup().location
+  sku: {
+    name: 'S1'
+  }
+  properties: {
+
+  }
+
+}
+
+// Create secrets for consumed resources and put their keys / connections strings into key vault
+// so that the function app can consume them using the key vault references noted above.
 var sharedAccessKey = listKeys(iotHub.id, iotHub.apiVersion).value[0].primaryKey
 resource hubConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {
   name: 'HubConnectionString'
