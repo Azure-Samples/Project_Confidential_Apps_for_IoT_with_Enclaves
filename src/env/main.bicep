@@ -2,12 +2,13 @@ targetScope = 'resourceGroup'
 
 var suffix = uniqueString(subscription().id, resourceGroup().id)
 
+param location string = resourceGroup().location
 @description('Use the recommended approach for managing rbac around AKV. You will need to set this to false if you do not have the appropriate permissions to manage roles in a subscription.')
 param keyvault_use_rbac bool = true
 
 resource akv 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
   name: 'vault${suffix}'
-  location: resourceGroup().location
+  location: location
   properties: {
     sku: {
       family: 'A'
@@ -22,7 +23,7 @@ resource akv 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
 
 resource insights 'Microsoft.Insights/components@2020-02-02-preview' = {
   name: 'insights'
-  location: resourceGroup().location
+  location: location
   kind: 'web'
   properties: {
     Application_Type: 'web'
@@ -31,7 +32,7 @@ resource insights 'Microsoft.Insights/components@2020-02-02-preview' = {
 
 resource blob 'Microsoft.Storage/storageAccounts@2021-06-01' = {
   name: 'storage${suffix}'
-  location: resourceGroup().location
+  location: location
   kind: 'Storage'
   sku: {
     name: 'Standard_LRS'
@@ -40,12 +41,12 @@ resource blob 'Microsoft.Storage/storageAccounts@2021-06-01' = {
 
 resource funIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
   name: 'func-id-${suffix}'
-  location: resourceGroup().location
+  location: location
 }
 
 resource farm 'Microsoft.Web/serverfarms@2021-02-01' = {
   name: 'farm'
-  location: resourceGroup().location
+  location: location
 
   sku: {
     name: 'S1'
@@ -56,7 +57,7 @@ resource farm 'Microsoft.Web/serverfarms@2021-02-01' = {
 var connectionString = 'DefaultEndpointsProtocol=https;AccountName=${blob.name};AccountKey=${listKeys(blob.id, blob.apiVersion).keys[0].value};EndpointSuffix=core.windows.net'
 resource func 'Microsoft.Web/sites@2020-12-01' = {
   name: 'func${suffix}'
-  location: resourceGroup().location
+  location: location
   kind: 'functionapp'
   properties: {
     serverFarmId: farm.id
@@ -165,7 +166,7 @@ resource accessPolicy 'Microsoft.KeyVault/vaults/accessPolicies@2021-06-01-previ
 
 resource iotHub 'Microsoft.Devices/IotHubs@2021-07-01' = {
   name: 'iot${suffix}'
-  location: resourceGroup().location
+  location: location
   sku: {
     name: 'S1'
     capacity: 1
@@ -203,8 +204,26 @@ resource akvUrlSecret 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {
 
 resource acr 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: 'acr${suffix}'
-  location: resourceGroup().location
+  location: location
   sku: {
     name: 'Standard'
+  }
+}
+
+resource provisioningService 'Microsoft.Devices/provisioningServices@2021-10-15' = {
+  name: 'ps${suffix}'
+  location: location
+  sku: {
+    name: 'S1'
+    capacity: 1
+  }
+  properties: {
+    enableDataResidency: false
+    iotHubs: [
+      {
+        location: location
+        connectionString: 'HostName=${iotHub.properties.hostName};SharedAccessKeyName=iothubowner;SharedAccessKey=${sharedAccessKey}'
+      }
+    ]
   }
 }
