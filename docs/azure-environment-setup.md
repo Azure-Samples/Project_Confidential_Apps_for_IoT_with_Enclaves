@@ -2,6 +2,8 @@
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJimPaine%2FProject_Confidential_Apps_for_IoT_with_Enclaves%2Fmain%2Fazuredeploy.json)
 
+#### Click once to deploy or read the rest of this document for step-by-step instructions.
+
 
 ## Introduction
 
