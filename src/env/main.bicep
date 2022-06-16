@@ -125,7 +125,7 @@ resource app 'Microsoft.Web/sites/sourcecontrols@2021-02-01' = {
   parent: func
 
   properties: {
-    repoUrl: 'https://github.com/JimPaine/Project_Confidential_Apps_for_IoT_with_Enclaves.git'
+    repoUrl: 'https://github.com/Azure-Samples/Project_Confidential_Apps_for_IoT_with_Enclaves.git'
     branch: 'main'
     isManualIntegration: true
   }
