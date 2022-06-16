@@ -1,5 +1,10 @@
 # Setting Up Your Azure Cloud Resources
 
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2FProject_Confidential_Apps_for_IoT_with_Enclaves%2Fmain%2Fazuredeploy.json)
+
+#### Click once to deploy or read the rest of this document for step-by-step instructions.
+
+
 ## Introduction
 
 This demonstration of the Enclave Device Blueprint for Confidential Computing makes use of a number
@@ -79,7 +84,7 @@ The **DistributeKey** function is somewhat different. It is not called explicitl
 background housekeeping task, synchronizing encryption keys with all of the edge devices in your
 deployment. There are different ways of triggering this function so that it runs at suitable times.
 However, the simplest and easiest is probably just to run it on a regular basis, such as once every
-hour. You can set it up as a 
+hour. You can set it up as a
 [timer trigger](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=csharp)
 to achieve this with very little effort. With a little more work, it would be possible to use event
 triggers to ensure that the function is called as needed on a more precise basis, such as when any
