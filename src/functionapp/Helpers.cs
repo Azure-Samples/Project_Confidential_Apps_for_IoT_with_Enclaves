@@ -38,9 +38,9 @@ public static class Helpers
             try
             {
                 _ = Convert.FromBase64String(k.ClientPublicKeyBase64Encoded);
-                X509Certificate2 cert = new X509Certificate2(k.ClientPublicKey);
-                RSA? rsa = cert?.GetRSAPublicKey();
-                if (rsa == null) return false;
+                RSA rsa = RSA.Create();
+                rsa.ImportSubjectPublicKeyInfo(k.ClientPublicKey, out int bytesRead);
+                if (bytesRead == 0) return false;
                 _ = rsa.ExportParameters(false);
             }
             catch(Exception exception)
