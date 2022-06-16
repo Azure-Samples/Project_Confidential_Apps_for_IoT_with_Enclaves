@@ -22,8 +22,9 @@ public class Startup : FunctionsStartup
                     new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = managedIdentityClientId }) :
                     new DefaultAzureCredential()));
 
-        string? iotHub = Environment.GetEnvironmentVariable("HubConnectionString");
-        if (string.IsNullOrEmpty(iotHub)) throw new ArgumentNullException("Failed to get HubConnectionString setting from the environment. Please check configuration.");
+        string iotHub = Environment.GetEnvironmentVariable("HubConnectionString") ??
+            throw new ArgumentNullException("Failed to get HubConnectionString setting from the environment. Please check configuration.");
+
         builder.Services.AddSingleton<RegistryManager>(o => RegistryManager.CreateFromConnectionString(iotHub));
     }
 }
