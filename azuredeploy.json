@@ -4,11 +4,15 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.4.1124.51302",
-      "templateHash": "10441574237314832113"
+      "version": "0.6.1.6515",
+      "templateHash": "14979708784411910327"
     }
   },
   "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    },
     "keyvault_use_rbac": {
       "type": "bool",
       "defaultValue": true,
@@ -26,7 +30,7 @@
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2021-06-01-preview",
       "name": "[format('vault{0}', variables('suffix'))]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "properties": {
         "sku": {
           "family": "A",
@@ -42,7 +46,7 @@
       "type": "Microsoft.Insights/components",
       "apiVersion": "2020-02-02-preview",
       "name": "insights",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "kind": "web",
       "properties": {
         "Application_Type": "web"
@@ -52,7 +56,7 @@
       "type": "Microsoft.Storage/storageAccounts",
       "apiVersion": "2021-06-01",
       "name": "[format('storage{0}', variables('suffix'))]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "kind": "Storage",
       "sku": {
         "name": "Standard_LRS"
@@ -62,13 +66,13 @@
       "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
       "apiVersion": "2018-11-30",
       "name": "[format('func-id-{0}', variables('suffix'))]",
-      "location": "[resourceGroup().location]"
+      "location": "[parameters('location')]"
     },
     {
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2021-02-01",
       "name": "farm",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "sku": {
         "name": "S1",
         "tier": "Standard"
@@ -78,7 +82,7 @@
       "type": "Microsoft.Web/sites",
       "apiVersion": "2020-12-01",
       "name": "[format('func{0}', variables('suffix'))]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "kind": "functionapp",
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'farm')]",
@@ -146,7 +150,7 @@
       "apiVersion": "2021-02-01",
       "name": "[format('{0}/{1}', format('func{0}', variables('suffix')), 'web')]",
       "properties": {
-        "repoUrl": "https://github.com/JimPaine/Project_Confidential_Apps_for_IoT_with_Enclaves.git",
+        "repoUrl": "https://github.com/Azure-Samples/Project_Confidential_Apps_for_IoT_with_Enclaves.git",
         "branch": "main",
         "isManualIntegration": true
       },
@@ -199,7 +203,7 @@
       "type": "Microsoft.Devices/IotHubs",
       "apiVersion": "2021-07-01",
       "name": "[format('iot{0}', variables('suffix'))]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "sku": {
         "name": "S1",
         "capacity": 1
@@ -240,10 +244,32 @@
       "type": "Microsoft.ContainerRegistry/registries",
       "apiVersion": "2021-06-01-preview",
       "name": "[format('acr{0}', variables('suffix'))]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "sku": {
         "name": "Standard"
       }
+    },
+    {
+      "type": "Microsoft.Devices/provisioningServices",
+      "apiVersion": "2021-10-15",
+      "name": "[format('ps{0}', variables('suffix'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "S1",
+        "capacity": 1
+      },
+      "properties": {
+        "enableDataResidency": false,
+        "iotHubs": [
+          {
+            "location": "[parameters('location')]",
+            "connectionString": "[format('HostName={0};SharedAccessKeyName=iothubowner;SharedAccessKey={1}', reference(resourceId('Microsoft.Devices/IotHubs', format('iot{0}', variables('suffix')))).hostName, listKeys(resourceId('Microsoft.Devices/IotHubs', format('iot{0}', variables('suffix'))), '2021-07-01').value[0].primaryKey)]"
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Devices/IotHubs', format('iot{0}', variables('suffix')))]"
+      ]
     }
   ]
 }
