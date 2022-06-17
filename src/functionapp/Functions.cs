@@ -71,8 +71,9 @@ public class Functions
         this.logger.LogInformation($"DistrubuteKey Timer trigger function executed at: {DateTime.Now}");
 
         List<SecretProperties> secrets = this.secretClient.GetPropertiesOfSecrets().ToList();
+        string[] excludedKeys = new [] {"HubConnectionString", "KeyVaultEndpoint"};
 
-        Dictionary<string, string> map = secrets.Select(
+        Dictionary<string, string> map = secrets.Where(x => !excludedKeys.Contains(x.Name)).Select(
             s => this.secretClient.GetSecretAsync(s.Name).Result.Value).ToDictionary(k => k.Name, v => v.Value);
 
         this.logger.LogInformation($"Obtained {map.Count} key(s) for distribution.");
